@@ -58,3 +58,5 @@ target/
 
 # RST readme version
 README
+venv3/
+local_testing.py

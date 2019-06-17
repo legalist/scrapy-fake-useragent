@@ -1,7 +1,11 @@
+import json
 import logging
+import random
+
 from fake_useragent import UserAgent
 
 logger = logging.getLogger(__name__)
+
 
 class RandomUserAgentMiddleware(object):
     def __init__(self, crawler):
@@ -19,15 +23,20 @@ class RandomUserAgentMiddleware(object):
 
     def process_request(self, request, spider):
         def get_ua():
-            '''Gets random UA based on the type setting (random, firefox)'''
-            return getattr(self.ua, self.ua_type)
-        
+            """Gets random UA based on the type setting (random, firefox)"""
+            result = getattr(self.ua, self.ua_type)
+            if not result:
+                data = json.load(open("../user_agents.json"))
+                browsers = data.get("browsers")
+                random_key = random.choice(list(browsers.keys()))
+                result = random.choice(browsers.get(random_key, ""))
+            return result
+
         if self.per_proxy:
             proxy = request.meta.get('proxy')
             if proxy not in self.proxy2ua:
                 self.proxy2ua[proxy] = get_ua()
-                logger.debug('Assign User-Agent %s to Proxy %s'
-                             % (self.proxy2ua[proxy], proxy))
+                logger.debug('Assign User-Agent %s to Proxy %s' % (self.proxy2ua[proxy], proxy))
             request.headers.setdefault('User-Agent', self.proxy2ua[proxy])
         else:
             request.headers.setdefault('User-Agent', get_ua())
