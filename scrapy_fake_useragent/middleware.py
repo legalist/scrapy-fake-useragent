@@ -24,7 +24,12 @@ class RandomUserAgentMiddleware(object):
     def process_request(self, request, spider):
         def get_ua():
             """Gets random UA based on the type setting (random, firefox)"""
-            result = getattr(self.ua, self.ua_type)
+            result = ""
+            try:
+                result = getattr(self.ua, self.ua_type)
+            except Exception as err:
+                logger.warning(err)
+
             if not result:
                 data = json.load(open("../user_agents.json"))
                 browsers = data.get("browsers")
